@@ -1,16 +1,40 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
     android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:orientation="vertical"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin" tools:context=".MainActivity">
 
+    <EditText
+        android:id="@+id/from"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:hint="Von"
+        android:inputType="textAutoComplete" />
+
+    <EditText
+        android:id="@+id/to"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:hint="Nach"
+        android:inputType="textAutoComplete"
+        android:layout_marginTop="50dp"
+        android:layout_marginBottom="20dp"/>
+
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Load"
-        android:id="@+id/buttonLoad"
+        android:text="Suche"
+        android:id="@+id/buttonSearch"
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"/>
 
-</RelativeLayout>
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Über uns"
+        android:id="@+id/buttonAbout"
+        android:onClick="about"/>
+
+</LinearLayout>

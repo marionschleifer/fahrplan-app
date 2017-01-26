@@ -6,6 +6,8 @@ import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.content.Intent;
+import android.support.v7.app.AppCompatActivity;
 
 import ch.schoeb.opendatatransport.IOpenTransportRepository;
 import ch.schoeb.opendatatransport.OpenDataTransportException;
@@ -20,13 +22,19 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Button btn = (Button) findViewById(R.id.buttonLoad);
+        Button btn = (Button) findViewById(R.id.buttonSearch);
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 LoadConnections();
             }
         });
+    }
+
+    public void about(View view)
+    {
+        Intent intent = new Intent(MainActivity.this, AboutActivity.class);
+        startActivity(intent);
     }
 
     private void LoadConnections() {
@@ -55,3 +63,5 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 }
+
+
