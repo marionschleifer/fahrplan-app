@@ -28,7 +28,8 @@
         android:text="Suche"
         android:id="@+id/buttonSearch"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"/>
+        android:layout_alignParentRight="true"
+        android:onClick="connectionList"/>
 
     <Button
         android:layout_width="match_parent"

@@ -21,14 +21,6 @@ public class MainActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        Button btn = (Button) findViewById(R.id.buttonSearch);
-        btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                LoadConnections();
-            }
-        });
     }
 
     public void about(View view)
@@ -37,31 +29,12 @@ public class MainActivity extends ActionBarActivity {
         startActivity(intent);
     }
 
-    private void LoadConnections() {
-        new LoaderTask().execute();
+    public void connectionList(View view)
+    {
+        Intent intent = new Intent(MainActivity.this, ConnectionListActivity.class);
+        startActivity(intent);
     }
 
-    private class LoaderTask extends AsyncTask<Void, Void, ConnectionList> {
-        @Override
-        protected ConnectionList doInBackground(Void... params) {
-            // Get Repository
-            IOpenTransportRepository repo = OpenTransportRepositoryFactory.CreateOnlineOpenTransportRepository();
-            ConnectionList connectionList = null;
-            try {
-                connectionList = repo.searchConnections("Buchs SG", "Zürich HB");
-            } catch (OpenDataTransportException e) {
-                    e.printStackTrace();
-            }
-
-            return connectionList;
-        }
-
-
-        @Override
-        protected void onPostExecute(ConnectionList connectionList) {
-            Log.d("ConnectionList", connectionList.toString());
-        }
-    }
 }
 
 

@@ -2,6 +2,8 @@ package ch.schoeb.opendatatransport.model;
 
 import java.util.List;
 
+import static android.R.attr.id;
+
 public class Connection{
     private Number capacity1st;
     private Number capacity2nd;
@@ -72,4 +74,9 @@ public class Connection{
     public String toString(){
         return from.getStation().getName() + " -> " + to.getStation().getName() + " on " + from.getDeparture();
     }
+
+    public int getId() {
+        return id;
+    }
+
 }
