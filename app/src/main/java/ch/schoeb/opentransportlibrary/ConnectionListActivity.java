@@ -1,26 +1,19 @@
 package ch.schoeb.opentransportlibrary;
-import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Activity;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.BaseAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 import ch.schoeb.opendatatransport.IOpenTransportRepository;
 import ch.schoeb.opendatatransport.OpenDataTransportException;
 import ch.schoeb.opendatatransport.OpenTransportRepositoryFactory;
 import ch.schoeb.opendatatransport.model.Connection;
-import ch.schoeb.opendatatransport.model.ConnectionList;
 
 /**
  * Created by marion on 28.01.17.
@@ -34,11 +27,18 @@ public class ConnectionListActivity extends Activity{
     private ArrayAdapter<String> arrayAdapter;
 //    private boolean loading;
 
+    private String from;
+    private String to;
+    private String [] stations;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_connection_list);
+
+        Intent intent = getIntent();
+        stations = intent.getStringArrayExtra("stationKey");
 
         arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, stringList);
         ListView listView = (ListView) findViewById(R.id.connectionlist);
@@ -55,7 +55,7 @@ public class ConnectionListActivity extends Activity{
     }
 
     private void LoadConnections() {
-        new LoaderTask().execute();
+        new LoaderTask(stations[0], stations[1]).execute();
     }
 
 //    public void setLoading(boolean loading) {
@@ -67,13 +67,22 @@ public class ConnectionListActivity extends Activity{
 //    }
 
     private class LoaderTask extends AsyncTask<Void, Void, List<Connection>> {
+
+        private String from;
+        private String to;
+
+        public LoaderTask(String from, String to) {
+            this.from = from;
+            this.to = to;
+        }
+
         @Override
         protected List<Connection> doInBackground(Void... params) {
             // Get Repository
             IOpenTransportRepository repo = OpenTransportRepositoryFactory.CreateOnlineOpenTransportRepository();
             List<Connection> connectionList = null;
             try {
-                connectionList = repo.searchConnections("Buchs SG", "Zürich HB").getConnections();
+                connectionList = repo.searchConnections(from, to).getConnections();
             } catch (OpenDataTransportException e) {
                 e.printStackTrace();
             }

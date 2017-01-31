@@ -11,14 +11,14 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:hint="Von"
-        android:inputType="textAutoComplete" />
+        android:inputType="text" />
 
     <EditText
         android:id="@+id/to"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:hint="Nach"
-        android:inputType="textAutoComplete"
+        android:inputType="text"
         android:layout_marginTop="50dp"
         android:layout_marginBottom="20dp"/>
 

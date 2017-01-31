@@ -1,18 +1,18 @@
 package ch.schoeb.opentransportlibrary;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.View;
-import android.widget.Button;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
+import android.widget.EditText;
 
-import ch.schoeb.opendatatransport.IOpenTransportRepository;
-import ch.schoeb.opendatatransport.OpenDataTransportException;
-import ch.schoeb.opendatatransport.OpenTransportRepositoryFactory;
-import ch.schoeb.opendatatransport.model.ConnectionList;
+import java.util.ArrayList;
+import java.util.List;
+
+import ch.schoeb.opendatatransport.model.Station;
+import ch.schoeb.opendatatransport.model.StationList;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -21,6 +21,7 @@ public class MainActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
     }
 
     public void about(View view)
@@ -31,7 +32,14 @@ public class MainActivity extends ActionBarActivity {
 
     public void connectionList(View view)
     {
+        EditText etFrom;
+        etFrom = (EditText) findViewById(R.id.from);
+
+        EditText etTo;
+        etTo = (EditText) findViewById(R.id.to);
+
         Intent intent = new Intent(MainActivity.this, ConnectionListActivity.class);
+        intent.putExtra("stationKey", new String[]{ etFrom.getText().toString(), etTo.getText().toString() });
         startActivity(intent);
     }
 
