@@ -30,6 +30,7 @@ public class ConnectionListActivity extends Activity{
     private String from;
     private String to;
     private String [] stations;
+    private Boolean isArrivalTime;
 
 
     @Override
@@ -39,6 +40,7 @@ public class ConnectionListActivity extends Activity{
 
         Intent intent = getIntent();
         stations = intent.getStringArrayExtra("stationKey");
+        isArrivalTime = intent.getBooleanExtra("isArrivalTime", true);
 
         arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, stringList);
         ListView listView = (ListView) findViewById(R.id.connectionlist);
@@ -55,7 +57,7 @@ public class ConnectionListActivity extends Activity{
     }
 
     private void LoadConnections() {
-        new LoaderTask(stations[0], stations[1]).execute();
+        new LoaderTask(stations[0], stations[1], stations[2], stations[3], isArrivalTime).execute();
     }
 
 //    public void setLoading(boolean loading) {
@@ -68,12 +70,18 @@ public class ConnectionListActivity extends Activity{
 
     private class LoaderTask extends AsyncTask<Void, Void, List<Connection>> {
 
+        private Boolean isArrivalTime;
+        private String time;
+        private String date;
         private String from;
         private String to;
 
-        public LoaderTask(String from, String to) {
+        public LoaderTask(String from, String to, String date, String time, Boolean isArrivalTime) {
             this.from = from;
             this.to = to;
+            this.date=date;
+            this.time=time;
+            this.isArrivalTime=isArrivalTime;
         }
 
         @Override
@@ -82,7 +90,7 @@ public class ConnectionListActivity extends Activity{
             IOpenTransportRepository repo = OpenTransportRepositoryFactory.CreateOnlineOpenTransportRepository();
             List<Connection> connectionList = null;
             try {
-                connectionList = repo.searchConnections(from, to).getConnections();
+                connectionList = repo.searchConnections( from,  to, null,  date,  time,  isArrivalTime).getConnections();
             } catch (OpenDataTransportException e) {
                 e.printStackTrace();
             }

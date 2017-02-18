@@ -1,4 +1,4 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
     android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
     android:orientation="vertical"
@@ -8,26 +8,75 @@
 
     <EditText
         android:id="@+id/from"
-        android:layout_width="fill_parent"
+        android:layout_width="250dp"
         android:layout_height="wrap_content"
         android:hint="Von"
-        android:inputType="text" />
+        android:inputType="text"
+        android:layout_alignRight="@+id/date"/>
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Switch"
+        android:src="@drawable/button_switch"
+        android:id="@+id/buttonSwitch"
+        android:layout_marginTop="50dp"
+        android:layout_toRightOf="@+id/from"
+        android:layout_alignRight="@+id/btn_date"/>
 
     <EditText
         android:id="@+id/to"
-        android:layout_width="fill_parent"
+        android:layout_width="250dp"
         android:layout_height="wrap_content"
         android:hint="Nach"
         android:inputType="text"
         android:layout_marginTop="50dp"
-        android:layout_marginBottom="20dp"/>
+        android:layout_below="@+id/from"/>
+
+    <EditText
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/date"
+        android:hint="Datum"
+        android:layout_marginTop="82dp"
+        android:layout_below="@+id/to"/>
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Switch"
-        android:id="@+id/buttonSwitch"
-        />
+        android:text="Datum"
+        android:id="@+id/btn_date"
+        android:layout_alignBottom="@+id/date"
+        android:layout_alignRight="@+id/buttonSearch"
+        android:layout_toRightOf="@+id/date"
+        android:layout_toEndOf="@+id/date" />
+
+    <EditText
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/time"
+        android:hint="Zeit"
+        android:layout_below="@+id/date"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Zeit"
+        android:id="@+id/btn_time"
+        android:layout_below="@+id/btn_date"
+        android:layout_alignLeft="@+id/btn_date"
+        android:layout_alignStart="@+id/btn_date"
+        android:layout_alignRight="@+id/buttonSearch"/>
+
+    <ToggleButton
+        android:text="ToggleButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textOff="Abfahrtszeit"
+        android:textOn="Ankunftszeit"
+        android:layout_below="@+id/time"
+        android:id="@+id/toggle" />
 
     <Button
         android:layout_width="wrap_content"
@@ -36,13 +85,18 @@
         android:id="@+id/buttonSearch"
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
-        android:onClick="connectionList"/>
+        android:onClick="connectionList"
+        android:layout_below="@+id/toggle"/>
 
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Über uns"
         android:id="@+id/buttonAbout"
-        android:onClick="about"/>
+        android:onClick="about"
+        android:layout_below="@+id/buttonSearch"/>
 
-</LinearLayout>
+
+
+
+</RelativeLayout>
