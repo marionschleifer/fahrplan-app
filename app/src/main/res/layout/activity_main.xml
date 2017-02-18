@@ -1,3 +1,4 @@
+
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
     android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
@@ -5,21 +6,29 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin" tools:context=".MainActivity">
-
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:elevation="4dp"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar" />
     <EditText
         android:id="@+id/from"
+        android:layout_marginTop="5dp"
         android:layout_width="250dp"
         android:layout_height="wrap_content"
         android:hint="Von"
         android:inputType="text"
-        android:layout_alignRight="@+id/date"/>
+        android:layout_alignRight="@+id/date"
+        android:layout_below="@+id/toolbar"/>
     <ImageButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Switch"
-        android:src="@drawable/button_switch"
+        android:src="@drawable/ic_swap_vert_black_48dp"
         android:id="@+id/buttonSwitch"
-        android:layout_marginTop="50dp"
+        android:layout_marginTop="100dp"
         android:layout_toRightOf="@+id/from"
         android:layout_alignRight="@+id/btn_date"/>
 
@@ -76,6 +85,7 @@
         android:textOff="Abfahrtszeit"
         android:textOn="Ankunftszeit"
         android:layout_below="@+id/time"
+        android:layout_marginBottom="50dp"
         android:id="@+id/toggle" />
 
     <Button
@@ -87,16 +97,5 @@
         android:layout_alignParentRight="true"
         android:onClick="connectionList"
         android:layout_below="@+id/toggle"/>
-
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Über uns"
-        android:id="@+id/buttonAbout"
-        android:onClick="about"
-        android:layout_below="@+id/buttonSearch"/>
-
-
-
 
 </RelativeLayout>

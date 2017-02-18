@@ -3,7 +3,11 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Activity;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
@@ -19,7 +23,7 @@ import ch.schoeb.opendatatransport.model.Connection;
  * Created by marion on 28.01.17.
  */
 
-public class ConnectionListActivity extends Activity{
+public class ConnectionListActivity extends AppCompatActivity {
 
     ListView listView;
 
@@ -37,6 +41,9 @@ public class ConnectionListActivity extends Activity{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_connection_list);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
         Intent intent = getIntent();
         stations = intent.getStringArrayExtra("stationKey");
@@ -58,6 +65,24 @@ public class ConnectionListActivity extends Activity{
 
     private void LoadConnections() {
         new LoaderTask(stations[0], stations[1], stations[2], stations[3], isArrivalTime).execute();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu){
+        getMenuInflater().inflate(R.menu.toolbar_connections, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        switch(item.getItemId()) {
+            case R.id.action_about:
+                Intent intent = new Intent(ConnectionListActivity.this, AboutActivity.class);
+                startActivity(intent);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
 //    public void setLoading(boolean loading) {
