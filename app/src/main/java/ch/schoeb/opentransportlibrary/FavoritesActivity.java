@@ -1,16 +1,13 @@
 package ch.schoeb.opentransportlibrary;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Color;
-import android.graphics.PorterDuff;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -36,7 +33,7 @@ public class FavoritesActivity extends AppCompatActivity {
     ListView listView;
     FavoritesDbHelper mDbHelper;
 
-    List<Favorit> favoritList = new ArrayList<Favorit>();
+    List<Favorit> favoritList = new ArrayList<>();
     private ArrayAdapter<Favorit> arrayAdapter;
 
 
@@ -51,7 +48,7 @@ public class FavoritesActivity extends AppCompatActivity {
         ActionBar ab = getSupportActionBar();
         ab.setDisplayHomeAsUpEnabled(true);
 
-        arrayAdapter = new ArrayAdapter<Favorit>(this, android.R.layout.simple_list_item_1, favoritList);
+        arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, favoritList);
         listView = (ListView) findViewById(R.id.favoriteslist);
         listView.setAdapter(arrayAdapter);
 
@@ -60,12 +57,43 @@ public class FavoritesActivity extends AppCompatActivity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView parentView, View childView,
                                     int position, long id) {
-                Log.d("parentView: ", parentView.toString());
-                Log.d("childView: ", childView.toString());
-                Log.d("position: ", Integer.toString(position));
-                Log.d("id: ", Long.toString(id));
                 Favorit favorit = arrayAdapter.getItem(position);
                 showSearch(favorit);
+            }
+        });
+
+        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            public boolean onItemLongClick(final AdapterView parentView, View childView, final int position, long id) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(FavoritesActivity.this);
+                builder.setTitle("Löschen");
+                builder.setMessage("Möchten Sie diesen Favoriten löschen?");
+                builder.setIcon(android.R.drawable.ic_dialog_alert);
+                builder.setPositiveButton("Ja", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int ii) {
+                        if (mDbHelper == null) {
+                            mDbHelper = new FavoritesDbHelper(FavoritesActivity.this);
+                        }
+                        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+                        Favorit favorite = (Favorit) parentView.getItemAtPosition(position);
+                        long ID = favorite.getId();
+                        String selection = DataBaseContract.FavoritEntry._ID + " LIKE ?";
+                        String[] selectionArgs = {ID + ""};
+                        db.delete(DataBaseContract.FavoritEntry.TABLE_NAME, selection, selectionArgs);
+                        favoritList=getDbData();
+                        arrayAdapter.clear();
+                        arrayAdapter.addAll(favoritList);
+                        arrayAdapter.notifyDataSetChanged();
+                    }
+                });
+
+                builder.setNegativeButton("Abbrechen", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int ii) {
+                                dialog.dismiss();
+                            }
+                        }
+                );
+                builder.show();
+                return true;
             }
         });
     }
@@ -101,8 +129,6 @@ public class FavoritesActivity extends AppCompatActivity {
         }
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
 
-// Define a projection that specifies which columns from the database
-// you will actually use after this query.
         String[] projection = {
                 DataBaseContract.FavoritEntry._ID,
                 DataBaseContract.FavoritEntry.COLUMN_NAME_FROM,
@@ -114,22 +140,15 @@ public class FavoritesActivity extends AppCompatActivity {
 
 
         Cursor cursor = db.query(
-                DataBaseContract.FavoritEntry.TABLE_NAME,                     // The table to query
-                projection,                               // The columns to return
-                null,                                // The columns for the WHERE clause
-                null,                            // The values for the WHERE clause
-                null,                                     // don't group the rows
-                null,                                     // don't filter by row groups
-                null                                 // The sort order
-        );
-        List favorites = new ArrayList<Favorit>();
+                DataBaseContract.FavoritEntry.TABLE_NAME, projection, null, null, null, null, null);
+        List favorites = new ArrayList<>();
         while (cursor.moveToNext()) {
             long id = cursor.getLong(cursor.getColumnIndexOrThrow(DataBaseContract.FavoritEntry._ID));
             String from = cursor.getString(cursor.getColumnIndexOrThrow(DataBaseContract.FavoritEntry.COLUMN_NAME_FROM));
             String to = cursor.getString(cursor.getColumnIndexOrThrow(DataBaseContract.FavoritEntry.COLUMN_NAME_TO));
             String date = cursor.getString(cursor.getColumnIndexOrThrow(DataBaseContract.FavoritEntry.COLUMN_NAME_DATE));
             String time = cursor.getString(cursor.getColumnIndexOrThrow(DataBaseContract.FavoritEntry.COLUMN_NAME_TIME));
-            boolean isArrivalTime = (cursor.getInt(cursor.getColumnIndexOrThrow(DataBaseContract.FavoritEntry.COLUMN_NAME_IS_ARRIVAL_TIME)) == 1 ? true : false);
+            boolean isArrivalTime = cursor.getInt(cursor.getColumnIndexOrThrow(DataBaseContract.FavoritEntry.COLUMN_NAME_IS_ARRIVAL_TIME)) == 1 ;
             favorites.add(new Favorit(id, from, to, date, time, isArrivalTime));
         }
         cursor.close();
@@ -219,7 +238,7 @@ public class FavoritesActivity extends AppCompatActivity {
 
         @Override
         public String toString() {
-            return id + ": " + from + " -> " + to + " am " + date + " " + time + " (" + (isArrivalTime ? "Ankunfts" : "Abfahrts") + "zeit)";
+            return from + " -> " + to + " am " + date + " " + time + " (" + (isArrivalTime ? "Ankunfts" : "Abfahrts") + "zeit)";
         }
 
         public long getId() {
