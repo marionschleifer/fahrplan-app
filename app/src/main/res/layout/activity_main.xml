@@ -98,4 +98,14 @@
         android:onClick="connectionList"
         android:layout_below="@+id/toggle"/>
 
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Zu Favoriten hinzufügen"
+        android:id="@+id/buttonFavoriten"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:onClick="addToFavorites"
+        android:layout_below="@+id/buttonSearch"/>
+
 </RelativeLayout>

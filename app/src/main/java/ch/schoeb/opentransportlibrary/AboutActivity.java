@@ -33,6 +33,10 @@ public class AboutActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item){
         switch(item.getItemId()) {
+            case R.id.action_favorites_about:
+                Intent intent_favorites = new Intent(AboutActivity.this, FavoritesActivity.class);
+                startActivity(intent_favorites);
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }

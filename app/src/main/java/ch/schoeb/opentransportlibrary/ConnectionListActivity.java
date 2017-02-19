@@ -79,9 +79,13 @@ public class ConnectionListActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item){
         switch(item.getItemId()) {
-            case R.id.action_about:
-                Intent intent = new Intent(ConnectionListActivity.this, AboutActivity.class);
-                startActivity(intent);
+            case R.id.action_about_connections:
+                Intent intent_about = new Intent(ConnectionListActivity.this, AboutActivity.class);
+                startActivity(intent_about);
+                return true;
+            case R.id.action_favorite_connections:
+                Intent intent_favorites = new Intent(ConnectionListActivity.this, FavoritesActivity.class);
+                startActivity(intent_favorites);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
