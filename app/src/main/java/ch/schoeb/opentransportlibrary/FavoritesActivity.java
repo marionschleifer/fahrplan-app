@@ -18,6 +18,9 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -238,7 +241,16 @@ public class FavoritesActivity extends AppCompatActivity {
 
         @Override
         public String toString() {
-            return from + " -> " + to + " am " + date + " " + time + " (" + (isArrivalTime ? "Ankunfts" : "Abfahrts") + "zeit)";
+            DateFormat formatBefore = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+            DateFormat formatAfter = new SimpleDateFormat("dd.MM.yyyy HH:mm");
+            String dateTime = null;
+            try {
+                dateTime=formatAfter.format(formatBefore.parse(date+" "+time));
+            } catch (ParseException e) {
+                Log.e("ParseError", e.getMessage());
+                dateTime="?";
+            }
+            return from + " -> " + to + " um " + dateTime + " (" + (isArrivalTime ? "Ankunfts" : "Abfahrts") + "zeit)";
         }
 
         public long getId() {
