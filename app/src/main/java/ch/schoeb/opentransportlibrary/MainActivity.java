@@ -5,12 +5,18 @@ import android.app.TimePickerDialog;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.DatePicker;
@@ -21,22 +27,33 @@ import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
+import java.util.logging.Logger;
 
+import ch.schoeb.opendatatransport.IOpenTransportRepository;
+import ch.schoeb.opendatatransport.OpenDataTransportException;
+import ch.schoeb.opendatatransport.OpenTransportRepositoryFactory;
+import ch.schoeb.opendatatransport.model.Station;
 import ch.schoeb.opentransportlibrary.ch.schoeb.opentransportlibrary.contracts.DataBaseContract;
 import ch.schoeb.opentransportlibrary.ch.schoeb.opentransportlibrary.contracts.FavoritesDbHelper;
 
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final String TAG = MainActivity.class.getName();
     FavoritesDbHelper mDbHelper;
 
     Button btnDatePicker, btnTimePicker;
     ImageButton btnSwitch;
     ToggleButton toggle;
-    EditText etFrom, etTo, etDate, etTime;
+    AutoCompleteTextView etFrom;
+    EditText etTo, etDate, etTime;
     private int mYear, mMonth, mDay, mHour, mMinute;
     private boolean isArrivalTime;
+    IOpenTransportRepository repo = OpenTransportRepositoryFactory.CreateOnlineOpenTransportRepository();
+    ArrayAdapter<String> adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,7 +63,8 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        etFrom = (EditText) findViewById(R.id.from);
+        etFrom = (AutoCompleteTextView)
+                findViewById(R.id.from);
         etTo = (EditText) findViewById(R.id.to);
 
         btnDatePicker = (Button) findViewById(R.id.btn_date);
@@ -122,13 +140,86 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = getIntent();
         String[] stations = intent.getStringArrayExtra("stationKey");
         isArrivalTime = intent.getBooleanExtra("isArrivalTime", true);
-        if(stations!=null){
+        if (stations != null) {
             etFrom.setText(stations[0]);
             etTo.setText(stations[1]);
             etDate.setText(stations[2]);
             etTime.setText(stations[3]);
             toggle.setChecked(isArrivalTime);
         }
+
+        etFrom.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                loadStations(s.toString());
+            }
+        });
+
+        adapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_dropdown_item_1line, new ArrayList<String>());
+        etFrom.setAdapter(adapter);
+    }
+
+    private void loadStations(String query) {
+        LoaderTask loader = new LoaderTask(query);
+        loader.execute();
+    }
+
+    private class LoaderTask extends AsyncTask<Void, Void, List<Station>> {
+        private String query;
+
+        public LoaderTask(String query) {
+            this.query = query;
+        }
+
+        @Override
+        protected List<Station> doInBackground(Void... params) {
+            Log.i(TAG, "Query: "+query);
+
+            // Get Repository
+            IOpenTransportRepository repo = OpenTransportRepositoryFactory.CreateOnlineOpenTransportRepository();
+            List<Station> stationList = new ArrayList<>();
+
+            try {
+                stationList = repo.findStations(query).getStations();
+            } catch (OpenDataTransportException e) {
+                e.printStackTrace();
+            }
+
+            return stationList;
+        }
+
+        @Override
+        protected void onPostExecute(List<Station> stationList) {
+            super.onPostExecute(stationList);
+
+            Log.i(TAG, "Results: "+stationList.size());
+            for (Station station : stationList) {
+                Log.i(TAG, station.getName());
+            }
+
+            updateAutocomplete(stationList);
+        }
+    }
+
+    private void updateAutocomplete(List<Station> stationList) {
+        adapter.clear();
+
+        for (Station s : stationList) {
+            adapter.add(s.toString());
+        }
+
+        adapter.notifyDataSetChanged();
     }
 
     public String formatDate(int year, int month, int day) {
