@@ -30,7 +30,6 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-import java.util.logging.Logger;
 
 import ch.schoeb.opendatatransport.IOpenTransportRepository;
 import ch.schoeb.opendatatransport.OpenDataTransportException;
@@ -48,12 +47,13 @@ public class MainActivity extends AppCompatActivity {
     Button btnDatePicker, btnTimePicker;
     ImageButton btnSwitch;
     ToggleButton toggle;
-    AutoCompleteTextView etFrom;
-    EditText etTo, etDate, etTime;
+    AutoCompleteTextView etFrom, etTo;
+    EditText etDate, etTime;
     private int mYear, mMonth, mDay, mHour, mMinute;
     private boolean isArrivalTime;
     IOpenTransportRepository repo = OpenTransportRepositoryFactory.CreateOnlineOpenTransportRepository();
-    ArrayAdapter<String> adapter;
+    private ArrayAdapter<String> fromAutocompleteAdapter;
+    private ArrayAdapter<String> toAutocompleteAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,9 +63,8 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        etFrom = (AutoCompleteTextView)
-                findViewById(R.id.from);
-        etTo = (EditText) findViewById(R.id.to);
+        etFrom = (AutoCompleteTextView) findViewById(R.id.from);
+        etTo = (AutoCompleteTextView) findViewById(R.id.to);
 
         btnDatePicker = (Button) findViewById(R.id.btn_date);
         btnTimePicker = (Button) findViewById(R.id.btn_time);
@@ -127,13 +126,11 @@ public class MainActivity extends AppCompatActivity {
         btnSwitch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 String toFrom = etTo.getText().toString();
                 String fromTo = etFrom.getText().toString();
 
                 etFrom.setText(toFrom);
                 etTo.setText(fromTo);
-
             }
         });
 
@@ -148,43 +145,69 @@ public class MainActivity extends AppCompatActivity {
             toggle.setChecked(isArrivalTime);
         }
 
+        fromAutocompleteAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_dropdown_item_1line, new ArrayList<String>());
         etFrom.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
             }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-
             }
 
             @Override
             public void afterTextChanged(Editable s) {
-                loadStations(s.toString());
+                loadStations(s.toString(), etFrom);
             }
         });
+        etFrom.setAdapter(fromAutocompleteAdapter);
 
-        adapter = new ArrayAdapter<>(this,
+        toAutocompleteAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_dropdown_item_1line, new ArrayList<String>());
-        etFrom.setAdapter(adapter);
+        etTo.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                loadStations(s.toString(), etTo);
+            }
+        });
+        etTo.setAdapter(toAutocompleteAdapter);
     }
 
-    private void loadStations(String query) {
-        LoaderTask loader = new LoaderTask(query);
-        loader.execute();
+    private void loadStations(final String query, final AutoCompleteTextView autoComplete) {
+        if (query == null || query.isEmpty()) {
+            return;
+        }
+
+        this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                LoaderTask loader = new LoaderTask(query, autoComplete);
+                loader.execute();
+            }
+        });
     }
 
     private class LoaderTask extends AsyncTask<Void, Void, List<Station>> {
+        private final AutoCompleteTextView autoComplete;
         private String query;
 
-        public LoaderTask(String query) {
+        public LoaderTask(String query, AutoCompleteTextView autoComplete) {
             this.query = query;
+            this.autoComplete = autoComplete;
         }
 
         @Override
         protected List<Station> doInBackground(Void... params) {
-            Log.i(TAG, "Query: "+query);
+            Log.i(TAG, "Query: " + query);
 
             // Get Repository
             IOpenTransportRepository repo = OpenTransportRepositoryFactory.CreateOnlineOpenTransportRepository();
@@ -202,24 +225,19 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(List<Station> stationList) {
             super.onPostExecute(stationList);
+            final ArrayAdapter<String> elementAdapter =
+                    (ArrayAdapter<String>) autoComplete.getAdapter();
 
-            Log.i(TAG, "Results: "+stationList.size());
+            elementAdapter.clear();
+
+            Log.i(TAG, "Results: " + stationList.size());
             for (Station station : stationList) {
                 Log.i(TAG, station.getName());
+                elementAdapter.add(station.getName());
             }
 
-            updateAutocomplete(stationList);
+            elementAdapter.getFilter().filter(autoComplete.getText(), null);
         }
-    }
-
-    private void updateAutocomplete(List<Station> stationList) {
-        adapter.clear();
-
-        for (Station s : stationList) {
-            adapter.add(s.toString());
-        }
-
-        adapter.notifyDataSetChanged();
     }
 
     public String formatDate(int year, int month, int day) {
