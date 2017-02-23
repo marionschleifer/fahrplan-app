@@ -26,11 +26,19 @@
     <ImageButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="Location"
+        android:src="@drawable/ic_location_searching_black_24dp"
+        android:layout_alignTop="@+id/from"
+        android:id="@+id/buttonLocationFrom"
+        android:layout_toRightOf="@+id/from"/>
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:text="Switch"
         android:src="@drawable/ic_swap_vert_black_48dp"
         android:id="@+id/buttonSwitch"
         android:layout_marginTop="100dp"
-        android:layout_toRightOf="@+id/from"
+        android:layout_toRightOf="@+id/buttonLocationFrom"
         android:layout_alignRight="@+id/btn_date"/>
 
     <AutoCompleteTextView
@@ -42,6 +50,15 @@
         android:inputType="text"
         android:layout_marginTop="50dp"
         android:layout_below="@+id/from"/>
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Location"
+        android:src="@drawable/ic_location_searching_black_24dp"
+        android:layout_alignTop="@+id/to"
+        android:id="@+id/buttonLocationTo"
+        android:layout_toRightOf="@+id/to"/>
 
     <EditText
         android:layout_width="250dp"

@@ -1,12 +1,16 @@
 package ch.schoeb.opentransportlibrary;
 
+import android.Manifest;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
+import android.location.Location;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
@@ -26,6 +30,11 @@ import android.widget.TimePicker;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
+
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -39,21 +48,21 @@ import ch.schoeb.opentransportlibrary.ch.schoeb.opentransportlibrary.contracts.D
 import ch.schoeb.opentransportlibrary.ch.schoeb.opentransportlibrary.contracts.FavoritesDbHelper;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private static final String TAG = MainActivity.class.getName();
+    private static final int MY_PERMISSIONS_REQUEST_ACCESS_LOCATION = 0;
+    private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 1000;
     FavoritesDbHelper mDbHelper;
 
     Button btnDatePicker, btnTimePicker;
-    ImageButton btnSwitch;
+    ImageButton btnSwitch, btnFromLocation, btnToLocation;
     ToggleButton toggle;
     AutoCompleteTextView etFrom, etTo;
     EditText etDate, etTime;
     private int mYear, mMonth, mDay, mHour, mMinute;
     private boolean isArrivalTime;
-    IOpenTransportRepository repo = OpenTransportRepositoryFactory.CreateOnlineOpenTransportRepository();
-    private ArrayAdapter<String> fromAutocompleteAdapter;
-    private ArrayAdapter<String> toAutocompleteAdapter;
+    private GoogleApiClient mGoogleApiClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,7 +88,6 @@ public class MainActivity extends AppCompatActivity {
         });
 
         Calendar c = Calendar.getInstance();
-        DecimalFormat format = new DecimalFormat("00");
         etDate.setText(formatDate(c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)));
         etTime.setText(formatTime(c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE)));
 
@@ -134,6 +142,26 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        if (checkPlayServices()) {
+            buildGoogleApiClient();
+        }
+        btnFromLocation = (ImageButton) findViewById(R.id.buttonLocationFrom);
+        btnFromLocation.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getStationByLocation(etFrom);
+            }
+        });
+
+        btnToLocation = (ImageButton) findViewById(R.id.buttonLocationTo);
+        btnToLocation.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getStationByLocation(etTo);
+            }
+        });
+
+
         Intent intent = getIntent();
         String[] stations = intent.getStringArrayExtra("stationKey");
         isArrivalTime = intent.getBooleanExtra("isArrivalTime", true);
@@ -145,7 +173,7 @@ public class MainActivity extends AppCompatActivity {
             toggle.setChecked(isArrivalTime);
         }
 
-        fromAutocompleteAdapter = new ArrayAdapter<>(this,
+        ArrayAdapter<String> fromAutocompleteAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_dropdown_item_1line, new ArrayList<String>());
         etFrom.addTextChangedListener(new TextWatcher() {
             @Override
@@ -163,7 +191,7 @@ public class MainActivity extends AppCompatActivity {
         });
         etFrom.setAdapter(fromAutocompleteAdapter);
 
-        toAutocompleteAdapter = new ArrayAdapter<>(this,
+        ArrayAdapter<String> toAutocompleteAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_dropdown_item_1line, new ArrayList<String>());
         etTo.addTextChangedListener(new TextWatcher() {
             @Override
@@ -180,6 +208,62 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         etTo.setAdapter(toAutocompleteAdapter);
+    }
+
+    private String getStationByLocation(final AutoCompleteTextView autoComplete) {
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSIONS_REQUEST_ACCESS_LOCATION);
+            return "";
+        }
+        Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+
+        if (mLastLocation != null) {
+            final double latitude = mLastLocation.getLatitude();
+            final double longitude = mLastLocation.getLongitude();
+            Log.d("latiude", latitude + "");
+            Log.d("longitude", longitude + "");
+            this.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    LoaderTaskLocation loader = new LoaderTaskLocation(latitude + "", longitude + "", autoComplete);
+                    loader.execute();
+                }
+            });
+        } else {
+            Toast.makeText(getApplicationContext(),
+                    "Suche nach nächster Location wird nicht unterstützt.", Toast.LENGTH_LONG)
+                    .show();
+        }
+        return "";
+    }
+
+    private boolean checkPlayServices() {
+        GoogleApiAvailability googleAPI = GoogleApiAvailability.getInstance();
+        int resultCode = googleAPI.isGooglePlayServicesAvailable(MainActivity.this);
+        if (resultCode != ConnectionResult.SUCCESS) {
+            if (googleAPI.isUserResolvableError(resultCode)) {
+                googleAPI.getErrorDialog(this, resultCode, PLAY_SERVICES_RESOLUTION_REQUEST).show();
+            } else {
+                Toast.makeText(getApplicationContext(),
+                        "This device is not supported.", Toast.LENGTH_LONG)
+                        .show();
+                finish();
+            }
+            return false;
+        }
+        return true;
+    }
+
+    protected synchronized void buildGoogleApiClient() {
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API).build();
+    }
+
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        //TODO
     }
 
     private void loadStations(final String query, final AutoCompleteTextView autoComplete) {
@@ -238,6 +322,54 @@ public class MainActivity extends AppCompatActivity {
 
             elementAdapter.getFilter().filter(autoComplete.getText(), null);
         }
+    }
+
+    private class LoaderTaskLocation extends AsyncTask<Void, Void, List<Station>> {
+        private final AutoCompleteTextView autoComplete;
+        private String latitude;
+        private String longitude;
+
+        public LoaderTaskLocation(String latitude, String longitude, final AutoCompleteTextView autoComplete) {
+            this.latitude = latitude;
+            this.longitude = longitude;
+            this.autoComplete = autoComplete;
+        }
+
+        @Override
+        protected List<Station> doInBackground(Void... params) {
+            Log.i(TAG, "latitude: " + latitude);
+            Log.i(TAG, "longitude: " + longitude);
+
+            // Get Repository
+            IOpenTransportRepository repo = OpenTransportRepositoryFactory.CreateOnlineOpenTransportRepository();
+            List<Station> stationList = new ArrayList<>();
+
+            try {
+                stationList = repo.findStationsByLocation(longitude, latitude).getStations();
+            } catch (OpenDataTransportException e) {
+                e.printStackTrace();
+            }
+            return stationList;
+        }
+
+        @Override
+        protected void onPostExecute(List<Station> stationList) {
+            super.onPostExecute(stationList);
+            Station station = stationList.get(0);
+            autoComplete.setText(station.getName());
+        }
+    }
+
+    protected void onStart() {
+        super.onStart();
+        if (mGoogleApiClient != null) {
+            mGoogleApiClient.connect();
+        }
+    }
+
+    protected void onStop() {
+        mGoogleApiClient.disconnect();
+        super.onStop();
     }
 
     public String formatDate(int year, int month, int day) {
@@ -301,7 +433,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         // Insert the new row, returning the primary key value of the new row
-        long newRowId = db.insert(DataBaseContract.FavoritEntry.TABLE_NAME, null, values);
+        db.insert(DataBaseContract.FavoritEntry.TABLE_NAME, null, values);
 
         Toast.makeText(MainActivity.this, "Verbindung zu Favoriten hinzugefügt", Toast.LENGTH_LONG).show();
     }
@@ -314,6 +446,31 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
+    @Override
+    public void onConnected(Bundle connectionHint) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSIONS_REQUEST_ACCESS_LOCATION);
+            return;
+        }
+        Location mLastLocation = LocationServices.FusedLocationApi
+                .getLastLocation(mGoogleApiClient);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        checkPlayServices();
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult result) {
+        Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());
+    }
 }
 
 

@@ -1,5 +1,7 @@
 package ch.schoeb.opendatatransport;
 
+import android.util.Log;
+
 import com.google.gson.Gson;
 
 import java.io.BufferedReader;
@@ -21,6 +23,25 @@ public class OnlineOpenTransportRepository implements IOpenTransportRepository {
 
         Gson gson = new Gson();
         return gson.fromJson(json, StationList.class);
+    }
+
+    @Override
+    public StationList findStationsByLocation(String longitude, String latitude) throws OpenDataTransportException {
+        String url = buildFindStationsByLocationUrl(longitude, latitude);
+        String json = GetJson(url);
+
+        Gson gson = new Gson();
+        return gson.fromJson(json, StationList.class);
+    }
+
+    private String buildFindStationsByLocationUrl(String longitude, String latitude) {
+        String url = null;
+        try {
+            url = "http://transport.opendata.ch/v1/locations?x=" + URLEncoder.encode(latitude, "UTF-8") + "&y=" + URLEncoder.encode(longitude, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+        }
+
+        return url;
     }
 
     private String buildFindStationsUrl(String query) {
