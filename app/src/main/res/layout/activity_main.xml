@@ -35,7 +35,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Switch"
-        android:src="@drawable/ic_swap_vert_black_48dp"
+        android:src="@drawable/ic_swap_vert_black_24dp"
         android:id="@+id/buttonSwitch"
         android:layout_marginTop="100dp"
         android:layout_toRightOf="@+id/buttonLocationFrom"
@@ -104,7 +104,7 @@
         android:textOff="Abfahrtszeit"
         android:textOn="Ankunftszeit"
         android:layout_below="@+id/time"
-        android:layout_marginBottom="50dp"
+        android:layout_marginBottom="25dp"
         android:id="@+id/toggle" />
 
     <Button

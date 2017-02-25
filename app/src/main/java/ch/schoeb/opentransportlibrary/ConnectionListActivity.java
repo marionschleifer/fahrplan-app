@@ -12,6 +12,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import java.text.DateFormat;
 import java.text.Format;
@@ -159,9 +160,12 @@ public class ConnectionListActivity extends AppCompatActivity {
 
     public void later(View view) {
         final long ONE_MINUTE_IN_MILLIS = 60000;
+        if(connectionList.size()<1){
+            Toast.makeText(ConnectionListActivity.this, "Keine Verbindung vorhanden", Toast.LENGTH_LONG).show();
+            return;
+        }
         Connection lastConnection = connectionList.get(connectionList.size() - 1);
         DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss+SSSS");
-        //2017-02-19T21:00:00+0100
         String arrivalTimeString = lastConnection.getFrom().getDeparture();
         Date oldDate = null;
         try {

@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     AutoCompleteTextView etFrom, etTo;
     EditText etDate, etTime;
     private int mYear, mMonth, mDay, mHour, mMinute;
-    private boolean isArrivalTime;
+    private boolean isArrivalTime=false;
     private GoogleApiClient mGoogleApiClient;
 
     @Override
@@ -164,7 +164,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
         Intent intent = getIntent();
         String[] stations = intent.getStringArrayExtra("stationKey");
-        isArrivalTime = intent.getBooleanExtra("isArrivalTime", true);
+        isArrivalTime = intent.getBooleanExtra("isArrivalTime", false);
         if (stations != null) {
             etFrom.setText(stations[0]);
             etTo.setText(stations[1]);
@@ -410,6 +410,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     }
 
     public void connectionList(View view) {
+        if(etFrom.getText().toString().equals(etTo.getText().toString())){
+            Toast.makeText(MainActivity.this, "Bitte unterschiedliche Start- und Zielorte wählen", Toast.LENGTH_LONG).show();
+            return;
+        }
         Intent intent = new Intent(MainActivity.this, ConnectionListActivity.class);
         intent.putExtra("stationKey", new String[]{etFrom.getText().toString(), etTo.getText().toString(), etDate.getText().toString(), etTime.getText().toString()});
         intent.putExtra("isArrivalTime", isArrivalTime);
